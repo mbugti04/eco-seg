@@ -16,6 +16,7 @@ from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 
 def make_annotator(weights_path: str, device: str) -> SamAutomaticMaskGenerator:
     model_type = "vit_h"
+    # model_type = "vit_b"
     print(f"Loading {model_type} on {device} device")
     t1 = time.perf_counter()
     sam = sam_model_registry[model_type](weights_path)
@@ -47,13 +48,25 @@ if __name__ == "__main__":
         img_path = images_path / filename
         out_path = sam_path / filename
         img = Image.open(img_path)
-        img = np.array(img)
-        masks = sam.generate(img)
+        
+        # Store original size
+        orig_size = img.size  # (width, height)
+        
+        # Resize to lower resolution for mask generation
+        low_res_size = (orig_size[0] // 4, orig_size[1] // 4)  # e.g., 1/4 resolution
+        img_low_res = img.resize(low_res_size, resample=Image.BILINEAR)
+        img_np = np.array(img_low_res)
+        
+        masks = sam.generate(img_np)
         sorted_masks = sorted(masks, key=(lambda x: x["area"]), reverse=True)
         label = np.zeros(sorted_masks[0]["segmentation"].shape, dtype=np.uint8)
         for i, sm in enumerate(sorted_masks):
             m = sm["segmentation"]
             label[m] = i + 1
-        max_masks = max(max_masks, np.max(label))
+        
+        # Resize label mask back to original size
         label_img = Image.fromarray(label, mode="L")
-        label_img.save(out_path)
+        label_img_up = label_img.resize(orig_size, resample=Image.NEAREST)
+        
+        max_masks = max(max_masks, np.max(label_img_up))
+        label_img_up.save(out_path)
