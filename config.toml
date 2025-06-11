@@ -2,4 +2,4 @@ device = "cuda" # or "cpu"
 
 [paths]
 data = "example_dataset"                      # enter path to your dataset here
-sam_weights = "/your/path/to/sam_weights.pth"
+sam_weights = "/sam_weights/sam_vit_h_4b8939.pth"
