@@ -2,6 +2,7 @@
     "classes": [
         { "id": 1, "name": "water", "color": "#FF0000" },
         { "id": 2, "name": "foliage", "color": "#00FF00" },
-        { "id": 3, "name": "sky", "color": "#0000FF" }
+        { "id": 3, "name": "sky", "color": "#0000FF" },
+        { "id": 4, "name": "rocks", "color": "#000F0F" }
     ]
 }
