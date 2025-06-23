@@ -185,7 +185,13 @@ class MainWindow(QMainWindow):
 
     def _load_sample_by_id(self, id: int):
         self._curr_id = id
-        name = f"{self._image_stems[self._curr_id]}.png"
+        stem = self._image_stems[self._curr_id]
+        # Find the image file with any extension for the current stem
+        image_files = list(self._image_dir.glob(f"{stem}.*"))
+        if not image_files:
+            raise FileNotFoundError(f"No image found for stem: {stem}")
+        image_path_actual = image_files[0]
+        name = image_path_actual.name
         image_path = self._image_dir / name
         label_path = self._label_dir / name
         sam_path = self._sam_dir / name
