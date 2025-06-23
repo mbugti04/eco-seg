@@ -8,4 +8,4 @@ sam_weights/*
 images/*
 sam/*
 model_weights/*
-example_dataset
+example_dataset/*
