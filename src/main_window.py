@@ -193,8 +193,8 @@ class MainWindow(QMainWindow):
         image_path_actual = image_files[0]
         name = image_path_actual.name
         image_path = self._image_dir / name
-        label_path = self._label_dir / name
-        sam_path = self._sam_dir / name
+        label_path = self._label_dir / (stem + ".png")
+        sam_path = self._sam_dir / (stem + ".png")
         self._graphics_view.load_sample(image_path, label_path, sam_path)
         self.ds_label.setText(f"Sample: {name}")
 
