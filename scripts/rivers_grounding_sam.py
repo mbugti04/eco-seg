@@ -31,7 +31,6 @@ grounding_dino_model = grounding_dino_annotator()
 sam_model = sam_segmentor()
 
 # Get images from path
-# TODO: Only looks at JPG images
 image_paths = glob.glob("example_dataset/images/*.*")
 print(image_paths)
 
