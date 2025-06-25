@@ -2,7 +2,7 @@ import os
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
-import timeit
+
 import numpy as np
 import matplotlib.pyplot as plt
 import keras
@@ -13,6 +13,7 @@ import keras_hub
 from groundingdino.util.inference import Model as GroundingDINO
 from PIL import Image
 import glob
+import json
 
 from rivers_grounding_sam_helper import show_mask, show_points, show_box, inference_resizing, unpad_and_resize
 
@@ -37,6 +38,11 @@ print(image_paths)
 # Create directory for masks
 masks_dir = "example_dataset/sam"
 os.makedirs(masks_dir, exist_ok=True)
+
+# Load class names from classes.json
+with open("example_dataset/classes.json", "r") as f:
+    classes_data = json.load(f)
+object_list = [cls["name"] for cls in classes_data["classes"]]
 
 # Segment each image
 for image_index in range(len(image_paths)):
@@ -86,6 +92,6 @@ for image_index in range(len(image_paths)):
     
     # Save the mask image in the masks directory
     imgpath = image_paths[image_index]
-    file_name = imgpath[imgpath.rfind('/')+1:imgpath.rfind('.')] + ".png"
+    file_name = imgpath[imgpath.rfind('/')+1:imgpath.rfind('.')] + "_mask.png"
     mask_path = os.path.join(masks_dir, file_name)
     mask_img.save(mask_path)
