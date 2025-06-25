@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         self._graphics_view.set_brush_color(QColor(color))
 
     def save_current_label(self):
-        curr_label_path = self._label_dir / f"{self._image_stems[self._curr_id]}.png"
+        curr_label_path = self._label_dir / f"{self._image_stems[self._curr_id]}_label.png"
         self._graphics_view.save_label_to(curr_label_path)
 
     def UI_processed(self, image_name):
@@ -208,7 +208,7 @@ class MainWindow(QMainWindow):
         image_path_actual = image_files[0]
         name = image_path_actual.name
         image_path = self._image_dir / name
-        label_path = self._label_dir / (stem + ".png")
+        label_path = self._label_dir / (stem + "_label.png")
         sam_path = self._sam_dir / (stem + ".png")
         self._graphics_view.load_sample(image_path, label_path, sam_path)
         self.ds_label.setText(f"Sample: {name}")
