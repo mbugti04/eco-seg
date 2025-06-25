@@ -182,22 +182,6 @@ class MainWindow(QMainWindow):
     def save_current_label(self):
         curr_label_path = self._label_dir / f"{self._image_stems[self._curr_id]}_label.png"
         self._graphics_view.save_label_to(curr_label_path)
-
-    def UI_processed(self, image_name):
-        #Creates the json file to track processed images
-        processed_path = self._workdir / "UI_processed_images.json"
-        # Load existing processed list or create new
-        if processed_path.exists():
-            with open(processed_path, "r") as f:
-                processed = json.load(f)
-        else:
-            processed = []
-
-        if image_name not in processed:
-            processed.append(image_name)
-            with open(processed_path, "w") as f:
-                json.dump(processed, f, indent=2)
-
     def _load_sample_by_id(self, id: int):
         self._curr_id = id
         stem = self._image_stems[self._curr_id]
@@ -225,7 +209,6 @@ class MainWindow(QMainWindow):
         if step == 0:
             return
         self.save_current_label()
-        self.UI_processed(self._image_stems[self._curr_id])
         max_id = len(self._image_stems) - 1
         corner_case_id = 0 if step < 0 else max_id
         new_id = self._curr_id + step
@@ -257,5 +240,4 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         self.save_current_label()
-        self.UI_processed(self._image_stems[self._curr_id])
         return super().closeEvent(a0)
