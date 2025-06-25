@@ -10,7 +10,7 @@ instances = 1              #set how many examples you want to sample from each s
 try:
     os.remove("/home/research/Documents/eco-seg/example_dataset/images_to_process.txt")  #remove the file if it already exists
 except OSError:
-    print("File does not exist, creating a new one.")
+    pass
 
 images = "images_to_process.txt"
 images_path = "/home/research/Documents/eco-seg/example_dataset"
