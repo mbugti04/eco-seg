@@ -92,6 +92,6 @@ for image_index in range(len(image_paths)):
     
     # Save the mask image in the masks directory
     imgpath = image_paths[image_index]
-    file_name = imgpath[imgpath.rfind('/')+1:imgpath.rfind('.')] + "_mask.png"
+    file_name = imgpath[imgpath.rfind('/')+1:imgpath.rfind('.')] + ".png"
     mask_path = os.path.join(masks_dir, file_name)
     mask_img.save(mask_path)
