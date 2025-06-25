@@ -4,7 +4,7 @@ import numpy as np
 directory = "/media/research/data/flow_1024_512/label_6/*"
 files = glob.glob(directory)
 file_dict = {}              #stores the files in a dictionary with keys as tuples of (site, deployment, label)
-instances = 1               #set how many examples you want to sample from each site & deployment 
+instances = 10              #set how many examples you want to sample from each site & deployment 
 
 
 for f in files: 
@@ -23,6 +23,8 @@ for f in files:
 # print(file_dict[x])
 
 for k in file_dict:
-    x = np.random.choice(file_dict[k], instances)
+    n_available = len(file_dict[k])
+    n_sample = min(instances, n_available)      #if there are less than instances available, sample all
+    x = np.random.choice(file_dict[k], n_sample, replace=False)
     print(x)
 
