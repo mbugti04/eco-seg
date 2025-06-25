@@ -5,7 +5,13 @@ import os
 directory = "/media/research/data/flow_1024_512/label_6/*"
 files = glob.glob(directory)
 file_dict = {}              #stores the files in a dictionary with keys as tuples of (site, deployment, label)
-instances = 1              #set how many examples you want to sample from each site & deployment 
+instances = 1              #set how many examples you want to sample from each site & deployment \
+
+try:
+    os.remove("/home/research/Documents/eco-seg/example_dataset/images_to_process.txt")  #remove the file if it already exists
+except OSError:
+    print("File does not exist, creating a new one.")
+
 images = "images_to_process.txt"
 images_path = "/home/research/Documents/eco-seg/example_dataset"
 images = os.path.join(images_path, images)
@@ -21,9 +27,6 @@ for f in files:
         file_dict[k] = [f]
     else:
         file_dict[k] += [f]
-
-# x = ('S15796', 'D110420_061621', 'L6')
-# print(file_dict[x])
 
 for k in file_dict:
     n_available = len(file_dict[k])
