@@ -4,6 +4,12 @@ import shutil
 import numpy as np
 import json
 from keras import ops
+from PIL import Image
+import keras
+import keras_hub
+from groundingdino.util.inference import Model as GroundingDINO
+from rivers_grounding_sam_helper import inference_resizing, unpad_and_resize, inference_resizing, unpad_and_resize
+
 
 # 1. Sampling logic (from dataset_initalizer.py)
 directory = "/media/research/data/flow_1024_512/label_6/*"
@@ -56,14 +62,6 @@ for img_path in sampled_files:
 
 
 # 3. Run DINO+SAM and save masks (from rivers_grounding_sam.py)
-from PIL import Image
-import keras
-import keras_hub
-from groundingdino.util.inference import Model as GroundingDINO
-from rivers_grounding_sam_helper import inference_resizing, unpad_and_resize
-
-from rivers_grounding_sam_helper import show_mask, show_points, show_box, inference_resizing, unpad_and_resize
-
 def sam_segmentor():
     sam_model = keras_hub.models.SAMImageSegmenter.from_preset("sam_huge_sa1b")
     return sam_model
