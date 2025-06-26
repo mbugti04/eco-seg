@@ -26,40 +26,44 @@ images = "images_to_process.txt"
 images_path = "/home/research/Documents/eco-seg/example_dataset"
 images = os.path.join(images_path, images)
 
-directory = "/media/research/data/flow_1024_512/label_6/*"
-files = glob.glob(directory)
-file_dict = {}
-instances = 1
+for f in files: 
+    name_full =f.split("/")[-1]
+    site = name_full.split("_")[0]         
+    deployment = name_full.split("_")[1] +  "_" + name_full.split("_")[2]  
+    label = name_full.split("_")[6].split(".")[0]       
 
-for f in files:
-    name_full = f.split("/")[-1]
-    site = name_full.split("_")[0]
-    deployment = name_full.split("_")[1] + "_" + name_full.split("_")[2]
-    label = name_full.split("_")[6].split(".")[0]
     k = (site, deployment, label)
     if k not in file_dict:
         file_dict[k] = [f]
     else:
         file_dict[k] += [f]
 
-sampled_files = []
 for k in file_dict:
     n_available = len(file_dict[k])
-    n_sample = min(instances, n_available)
+    n_sample = min(instances, n_available)      #if there are less than instances available, sample all
     x = np.random.choice(file_dict[k], n_sample, replace=False)
-    sampled_files.extend(x)
-
+    with open(images, "a") as f:                #save the path of the sampled images to a text file
+        for path in x:
+            f.write(path + "\n")
 
 
 # 2. Copy sampled images to UI dataset folder (from copy_images.py)
-images_dir = "example_dataset/images"
-os.makedirs(images_dir, exist_ok=True)
-for img_path in sampled_files:
+images_list_path = 'example_dataset/images_to_process.txt'
+destination_dir = 'example_dataset/images'
+
+# Ensure destination directory exists
+os.makedirs(destination_dir, exist_ok=True)
+
+# Read image paths from file
+with open(images_list_path, 'r') as f:
+    image_paths = [line.strip() for line in f if line.strip()]
+
+# Copy images
+for img_path in image_paths:
     if os.path.isfile(img_path):
-        shutil.copy(img_path, images_dir)
+        shutil.copy(img_path, destination_dir)
     else:
         print(f"Warning: File not found - {img_path}")
-
 
 # 3. Run DINO+SAM and save masks (from rivers_grounding_sam.py)
 def sam_segmentor():
@@ -77,7 +81,9 @@ grounding_dino_model = grounding_dino_annotator()
 sam_model = sam_segmentor()
 
 # Get images from path
-image_paths = glob.glob("example_dataset/images/*.*")
+with open(images, "r") as f:
+    image_paths = [line.strip() for line in f if line.strip()]
+
 print(image_paths)
 
 # Create directory for masks
@@ -107,8 +113,6 @@ for image_index in range(len(image_paths)):
     # !!wget -q https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/v0.1.0-alpha2/groundingdino/config/GroundingDINO_SwinT_OGC.py
 
 
-    # Specify what to segment
-    # foliage (trees, shrubs, grasses), rocks and sediment, river beds (the areas carved by water that transition from earth to water), sky, sun
     object_to_segment = "river"
     boxes = grounding_dino_model.predict_with_caption(image.astype(np.uint8), object_to_segment)
     boxes = np.array(boxes[0].xyxy)
