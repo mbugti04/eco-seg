@@ -87,6 +87,11 @@ def grounding_dino_annotator():
     grounding_dino_model = GroundingDINO(CONFIG_PATH, WEIGHTS_PATH)
     return grounding_dino_model
 
+ # Obtain Grounding DINO weights
+    # !!wget -q https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+    # !!wget -q https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/v0.1.0-alpha2/groundingdino/config/GroundingDINO_SwinT_OGC.py
+
+
 # Import models
 grounding_dino_model = grounding_dino_annotator()
 sam_model = sam_segmentor()
