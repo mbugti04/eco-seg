@@ -12,7 +12,7 @@ from rivers_grounding_sam_helper import inference_resizing, unpad_and_resize, in
 
 
 # 1. Sampling logic (from dataset_initalizer.py)
-directory = "/media/research/data/flow_1024_512/label_4/*"
+directory = "/media/research/data/flow_1024_512/label_5/*"
 files = glob.glob(directory)
 file_dict = {}              #stores the files in a dictionary with keys as tuples of (site, deployment, label)
 instances = 1               #set how many examples you want to sample from each site & deployment \
@@ -129,6 +129,7 @@ for image_index in range(len(image_paths)):
 
     if boxes.size == 0:
         print(f"Grounding DINO did not find any bounding boxes for object '{object_to_segment}'") 
+        continue 
 
     outputs = sam_model.predict(
         {
