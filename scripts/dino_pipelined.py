@@ -128,7 +128,7 @@ for image_index in range(len(image_paths)):
     boxes = np.array(boxes[0].xyxy)
 
     if boxes.size == 0:
-        raise Exception(f"Grounding DINO did not find any bounding boxes for object '{object_to_segment}'") 
+        print(f"Grounding DINO did not find any bounding boxes for object '{object_to_segment}'") 
 
     outputs = sam_model.predict(
         {
