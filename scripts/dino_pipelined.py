@@ -12,15 +12,10 @@ from rivers_grounding_sam_helper import inference_resizing, unpad_and_resize, in
 
 
 # 1. Sampling logic (from dataset_initalizer.py)
-directory = "/media/research/data/flow_1024_512/label_6/*"
+directory = "/media/research/data/flow_1024_512/label_4/*"
 files = glob.glob(directory)
 file_dict = {}              #stores the files in a dictionary with keys as tuples of (site, deployment, label)
-instances = 1              #set how many examples you want to sample from each site & deployment \
-
-try:
-    os.remove("/home/research/Documents/eco-seg/example_dataset/images_to_process.txt")  #remove the file if it already exists
-except OSError:
-    pass
+instances = 1               #set how many examples you want to sample from each site & deployment \
 
 images = "images_to_process.txt"
 images_path = "/home/research/Documents/eco-seg/example_dataset"
@@ -40,11 +35,25 @@ for f in files:
 
 for k in file_dict:
     n_available = len(file_dict[k])
-    n_sample = min(instances, n_available)      #if there are less than instances available, sample all
+    n_sample = min(instances, n_available) #if there are less than instances available, sample all
     x = np.random.choice(file_dict[k], n_sample, replace=False)
-    with open(images, "a") as f:                #save the path of the sampled images to a text file
+    
+    # Read existing content first
+    if os.path.exists(images):
+        with open(images, "r") as f:
+            content = f.read()
+    else:
+        content = ""
+    
+    # Append only new paths
+    with open(images, "a") as f:
         for path in x:
-            f.write(path + "\n")
+            if path not in content:
+                f.write(path + "\n")
+
+    with open(images, 'r') as file:
+        content = file.read()
+        print(content)
 
 
 # 2. Copy sampled images to UI dataset folder (from copy_images.py)
@@ -64,6 +73,7 @@ for img_path in image_paths:
         shutil.copy(img_path, destination_dir)
     else:
         print(f"Warning: File not found - {img_path}")
+
 
 # 3. Run DINO+SAM and save masks (from rivers_grounding_sam.py)
 def sam_segmentor():
