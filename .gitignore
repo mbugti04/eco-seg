@@ -10,3 +10,5 @@ sam_weights/*
 images/*
 sam/*
 model_weights/*
+example_dataset/UI_processed_images.json
+example_dataset/images_to_process.txt
