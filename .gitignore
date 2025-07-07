@@ -3,7 +3,7 @@ __pycache__
 *.pyc
 *.egg-info
 venv
-example_dataset/labels
+example_dataset
 sam_weights/*
 images/*
 sam/*
