@@ -169,6 +169,6 @@ for image_index in range(len(image_paths)):
     mask_path = os.path.join(masks_dir, file_name)
     mask_img.save(mask_path)
 
-    # After successful processing, append to processed_images.txt
+    # Add to processed_images.txt
     with open(processed_images_path, "a") as f:
         f.write(img_path + "\n")
