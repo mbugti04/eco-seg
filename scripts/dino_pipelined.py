@@ -15,16 +15,12 @@ from rivers_grounding_sam_helper import inference_resizing, unpad_and_resize, in
 directory = "/media/research/data/flow_1024_512/label_6/*"
 files = glob.glob(directory)
 file_dict = {}              #stores the files in a dictionary with keys as tuples of (site, deployment, label)
-instances = 1              #set how many examples you want to sample from each site & deployment \
-
-try:
-    os.remove("/home/research/Documents/eco-seg/example_dataset/images_to_process.txt")  #remove the file if it already exists
-except OSError:
-    pass
+instances = 1               #set how many examples you want to sample from each site & deployment \
 
 images = "images_to_process.txt"
 images_path = "/home/research/Documents/eco-seg/example_dataset"
 images = os.path.join(images_path, images)
+
 
 for f in files: 
     name_full =f.split("/")[-1]
@@ -40,11 +36,25 @@ for f in files:
 
 for k in file_dict:
     n_available = len(file_dict[k])
-    n_sample = min(instances, n_available)      #if there are less than instances available, sample all
+    n_sample = min(instances, n_available) #if there are less than instances available, sample all
     x = np.random.choice(file_dict[k], n_sample, replace=False)
-    with open(images, "a") as f:                #save the path of the sampled images to a text file
+    
+    # Read existing content first
+    if os.path.exists(images):
+        with open(images, "r") as f:
+            content = f.read()
+    else:
+        content = ""
+    
+    # Append only new paths
+    with open(images, "a") as f:
         for path in x:
-            f.write(path + "\n")
+            if path not in content:
+                f.write(path + "\n")
+
+    with open(images, 'r') as file:
+        content = file.read()
+        print(content)
 
 
 # 2. Copy sampled images to UI dataset folder (from copy_images.py)
@@ -65,6 +75,7 @@ for img_path in image_paths:
     else:
         print(f"Warning: File not found - {img_path}")
 
+
 # 3. Run DINO+SAM and save masks (from rivers_grounding_sam.py)
 def sam_segmentor():
     sam_model = keras_hub.models.SAMImageSegmenter.from_preset("sam_huge_sa1b")
@@ -75,6 +86,11 @@ def grounding_dino_annotator():
     WEIGHTS_PATH = "model_weights/groundingdino_swint_ogc.pth"
     grounding_dino_model = GroundingDINO(CONFIG_PATH, WEIGHTS_PATH)
     return grounding_dino_model
+
+ # Obtain Grounding DINO weights
+    # !!wget -q https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+    # !!wget -q https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/v0.1.0-alpha2/groundingdino/config/GroundingDINO_SwinT_OGC.py
+
 
 # Import models
 grounding_dino_model = grounding_dino_annotator()
@@ -95,30 +111,39 @@ with open("example_dataset/classes.json", "r") as f:
     classes_data = json.load(f)
 object_list = [cls["name"] for cls in classes_data["classes"]]
 
+processed_images_file = "processed_images.txt"
+processed_images_path = os.path.join(images_path, processed_images_file)
+
+# Read processed images into a set for fast lookup
+if os.path.exists(processed_images_path):
+    with open(processed_images_path, "r") as f:
+        processed_images = set(line.strip() for line in f if line.strip())
+else:
+    processed_images = set()
+
 # Segment each image
 for image_index in range(len(image_paths)):
+    img_path = image_paths[image_index]
+    if img_path in processed_images:
+        print(f"Skipping already processed image: {img_path}")
+        continue
+
     # Preprocess images
-    image = np.array(keras.utils.load_img(image_paths[image_index]))
-    print(image_paths[image_index])
+    image = np.array(keras.utils.load_img(img_path))
+    print(img_path)
 
     original_shape = image.shape
-
     resized_image, preprocess_shape = inference_resizing(image)
     image_np = ops.convert_to_numpy(resized_image)
     image = image_np
-
-
-    # Obtain Grounding DINO weights
-    # !!wget -q https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-    # !!wget -q https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/v0.1.0-alpha2/groundingdino/config/GroundingDINO_SwinT_OGC.py
-
 
     object_to_segment = "river"
     boxes = grounding_dino_model.predict_with_caption(image.astype(np.uint8), object_to_segment)
     boxes = np.array(boxes[0].xyxy)
 
     if boxes.size == 0:
-        raise Exception(f"Grounding DINO did not find any bounding boxes for object '{object_to_segment}'") 
+        print(f"Grounding DINO did not find any bounding boxes for object '{object_to_segment}'")
+        continue
 
     outputs = sam_model.predict(
         {
@@ -140,7 +165,10 @@ for image_index in range(len(image_paths)):
     mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode="L")
     
     # Save the mask image in the masks directory
-    imgpath = image_paths[image_index]
-    file_name = imgpath[imgpath.rfind('/')+1:imgpath.rfind('.')] + ".png"
+    file_name = img_path[img_path.rfind('/')+1:img_path.rfind('.')] + ".png"
     mask_path = os.path.join(masks_dir, file_name)
     mask_img.save(mask_path)
+
+    # After successful processing, append to processed_images.txt
+    with open(processed_images_path, "a") as f:
+        f.write(img_path + "\n")
