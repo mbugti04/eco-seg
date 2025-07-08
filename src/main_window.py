@@ -22,6 +22,7 @@ from .graphics_view import GraphicsView
 class MainWindow(QMainWindow):
     brush_feedback = pyqtSignal(int)  # allows QSlider react on mouse wheel
     sam_signal = pyqtSignal(bool)  # used to propagate sam mode to all widgets
+    image_stacking_signal = pyqtSignal(bool) # Enable image stacking
 
     def __init__(self, workdir: str):
         super(MainWindow, self).__init__()
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow):
         self.brush_feedback.connect(self.on_brush_size_change)
         self._graphics_view = GraphicsView(self.brush_feedback)
         self.sam_signal.connect(self._graphics_view.handle_sam_signal)
+        self.image_stacking_signal.connect(self._graphics_view.handle_image_stacking_signal)
 
         # Dataset group
         ds_group = QGroupBox(self.tr("Dataset"))
@@ -125,12 +127,23 @@ class MainWindow(QMainWindow):
         cs_vlay = QVBoxLayout(cs_group)
         cs_vlay.addWidget(self.cs_list)
 
+        # Image stacking Group
+        image_stacking_group = QGroupBox(self.tr("Image Stacking"))
+
+        self.image_stacking_checkbox = QCheckBox("Enable image stacking")
+        self.image_stacking_checkbox.stateChanged.connect(self.on_image_stacking_change)
+
+        image_stacking_vlay = QVBoxLayout(image_stacking_group)
+        image_stacking_vlay.addWidget(self.image_stacking_checkbox)
+
+        # Main vlay
         vlay = QVBoxLayout()
         vlay.addWidget(ds_group)
         vlay.addWidget(sam_group)
         vlay.addWidget(ls_group)
         vlay.addWidget(bs_group)
         vlay.addWidget(cs_group)
+        vlay.addWidget(image_stacking_group)
         vlay.addStretch()
 
         central_widget = QWidget()
@@ -142,7 +155,16 @@ class MainWindow(QMainWindow):
 
         self._curr_id = 0
         self._graphics_view.set_brush_color(QColor(colors[0]))
-        self.cs_list.setCurrentRow(0)
+        self.cs_list.setCurrentRow(0)        
+
+    @pyqtSlot(int)
+    def on_image_stacking_change(self, state: int):
+        if state == Qt.CheckState.Checked:
+            self.image_stacking_signal.emit(True)
+        elif state == Qt.CheckState.Unchecked:
+            self.image_stacking_signal.emit(False)
+        else:
+            print("unsupported check state")
 
     @pyqtSlot(int)
     def on_sam_change(self, state: int):
