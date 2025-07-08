@@ -41,11 +41,17 @@ class GraphicsView(QGraphicsView):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setCursor(Qt.CursorShape.BlankCursor)
 
+        self.image_stacking = False
+
     def set_label_opacity(self, value: int):
         self._scene.label_item.setOpacity(value / 100.0)
 
     def set_sam_opacity(self, value: int):
         self._scene.sam_item.setOpacity(value / 100.0)
+
+    @pyqtSlot(bool)
+    def handle_image_stacking_signal(self, is_stacking: bool):
+        self.image_stacking = is_stacking
 
     @pyqtSlot(bool)
     def handle_sam_signal(self, is_sam: bool):
@@ -71,17 +77,50 @@ class GraphicsView(QGraphicsView):
         self._scene.save_label(path)
 
     def load_sample(self, image_path: Path, label_path: Path, sam_path: Path):
-        image = QPixmap(str(image_path))
-        self._scene.setSceneRect(QRectF(QPointF(), QSizeF(image.size())))
-        self._scene.image_item.setPixmap(QPixmap(str(image_path)))
-        if label_path.exists():
-            self._scene.label_item.set_image(str(label_path))
+        if self.image_stacking:
+            # obtain path of all images with the same site
+            image_stem = image_path.stem.split('I')[0]  # assuming stem is like 'site1_001'
+            image_dir = image_path.parent
+            print("image dir: ", image_dir)
+            all_images = list(image_dir.glob(f"{image_stem}*.*"))
+            if not all_images:
+                raise FileNotFoundError(f"No images found for stem: {image_stem}")
+            # Sort images by name to maintain order
+            # convert to string paths for QPixmap compatibility
+            all_images = [str(img) for img in all_images if img.is_file()]
+            all_images.sort()
+            print("all images: ", all_images)
+            
+            # create a composite image with all images stacked, with low opacity
+            first_image = QPixmap(all_images[0])
+            composite_image = QPixmap(first_image.size())
+            composite_image.fill(Qt.GlobalColor.transparent)
+            
+            painter = QPainter(composite_image)
+            opacity = 1.0 / len(all_images)  # Equal opacity for all images
+            painter.setOpacity(opacity)
+            
+            for img_path in all_images:
+                temp_image = QPixmap(img_path)
+                if temp_image.size() != first_image.size():
+                    raise ValueError(f"Image sizes do not match: {temp_image.size()} vs {first_image.size()}")
+                painter.drawPixmap(0, 0, temp_image)
+            painter.end()
+            self._scene.setSceneRect(QRectF(QPointF(), QSizeF(composite_image.size())))
+            self._scene.image_item.setPixmap(composite_image)
+            
         else:
-            self._scene.label_item.clear()
-        if sam_path.exists():
-            self._scene.sam_item.set_image(str(sam_path))
-        self.fitInView(self._scene.image_item, Qt.AspectRatioMode.KeepAspectRatio)
-        self.centerOn(self._scene.image_item)
+            image = QPixmap(str(image_path))
+            self._scene.setSceneRect(QRectF(QPointF(), QSizeF(image.size())))
+            self._scene.image_item.setPixmap(QPixmap(str(image_path)))
+            if label_path.exists():
+                self._scene.label_item.set_image(str(label_path))
+            else:
+                self._scene.label_item.clear()
+            if sam_path.exists():
+                self._scene.sam_item.set_image(str(sam_path))
+            self.fitInView(self._scene.image_item, Qt.AspectRatioMode.KeepAspectRatio)
+            self.centerOn(self._scene.image_item)
 
     def scrollBy(self, point: QPoint):
         h_val = self.horizontalScrollBar().value() - point.x()
