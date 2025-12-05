@@ -3,8 +3,15 @@ __pycache__
 *.pyc
 *.egg-info
 venv
-example_dataset
+
+# ignore model weights
 sam_weights/*
-images/*
-sam/*
 model_weights/*
+
+# ignore images
+*.png
+*.JPG
+*.jpg
+
+# ignore datasets
+*_dataset/*
