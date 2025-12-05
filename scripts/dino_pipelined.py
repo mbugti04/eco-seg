@@ -10,15 +10,19 @@ import keras_hub
 from groundingdino.util.inference import Model as GroundingDINO
 from rivers_grounding_sam_helper import inference_resizing, unpad_and_resize, inference_resizing, unpad_and_resize
 
+dataset_name = "increase_dataset"
 
 # 1. Sampling logic (from dataset_initalizer.py)
-directory = "/media/research/data/flow_1024_512/label_6/*"
+level_to_sample = 1
+directory = f"/media/research/data/flow_1024_512/label_{level_to_sample}/*"
 files = glob.glob(directory)
 file_dict = {}              #stores the files in a dictionary with keys as tuples of (site, deployment, label)
 instances = 1               #set how many examples you want to sample from each site & deployment \
 
 images = "images_to_process.txt"
-images_path = "/home/research/Documents/eco-seg/example_dataset"
+images_path = f"/home/research/Documents/eco-seg/{dataset_name}"
+os.makedirs(images_path, exist_ok=True)
+
 images = os.path.join(images_path, images)
 
 
@@ -58,8 +62,8 @@ for k in file_dict:
 
 
 # 2. Copy sampled images to UI dataset folder (from copy_images.py)
-images_list_path = 'example_dataset/images_to_process.txt'
-destination_dir = 'example_dataset/images'
+images_list_path = f'{dataset_name}/images_to_process.txt'
+destination_dir = f'{dataset_name}/images'
 
 # Ensure destination directory exists
 os.makedirs(destination_dir, exist_ok=True)
@@ -103,11 +107,23 @@ with open(images, "r") as f:
 print(image_paths)
 
 # Create directory for masks
-masks_dir = "example_dataset/sam"
+masks_dir = f"{dataset_name}/sam"
 os.makedirs(masks_dir, exist_ok=True)
 
 # Load class names from classes.json
-with open("example_dataset/classes.json", "r") as f:
+classes_json_path = f"{dataset_name}/classes.json"
+if not os.path.exists(classes_json_path):
+    classes_data = {
+        "classes": [
+            { "id": 1, "name": "water", "color": "#FF0000" },
+            { "id": 2, "name": "foliage", "color": "#00FF00" },
+            { "id": 3, "name": "rocks", "color": "#0000FF" }
+        ]
+    }
+    with open(classes_json_path, "w") as f:
+        json.dump(classes_data, f, indent=4)
+
+with open(f"{dataset_name}/classes.json", "r") as f:
     classes_data = json.load(f)
 object_list = [cls["name"] for cls in classes_data["classes"]]
 
