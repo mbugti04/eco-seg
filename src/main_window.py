@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .graphics_view import GraphicsView
+from .copy_previous_mask import copy_previous_mask
 
 
 class MainWindow(QMainWindow):
@@ -136,6 +137,26 @@ class MainWindow(QMainWindow):
         image_stacking_vlay = QVBoxLayout(image_stacking_group)
         image_stacking_vlay.addWidget(self.image_stacking_checkbox)
 
+        # image selection slider
+        is_group = QGroupBox(self.tr("Image Selection"))
+
+        self.is_value = QLabel()
+        self.is_value.setText("Image: 1")
+
+        self.is_slider = QSlider()
+        self.is_slider = QSlider()
+        self.is_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.is_slider.setMinimum(1)
+        max_id = len(self._image_stems) - 1
+        self.is_slider.setMaximum(max_id)
+        self.is_slider.setSliderPosition(1)
+        self.is_slider.valueChanged.connect(self.on_image_selection_slider_change)
+
+        is_vlay = QVBoxLayout(is_group)
+        is_vlay.addWidget(self.is_value)
+        is_vlay.addWidget(self.is_slider)
+
+
         # Main vlay
         vlay = QVBoxLayout()
         vlay.addWidget(ds_group)
@@ -143,7 +164,7 @@ class MainWindow(QMainWindow):
         vlay.addWidget(ls_group)
         vlay.addWidget(bs_group)
         vlay.addWidget(cs_group)
-        vlay.addWidget(image_stacking_group)
+        vlay.addWidget(is_group)
         vlay.addStretch()
 
         central_widget = QWidget()
@@ -191,6 +212,21 @@ class MainWindow(QMainWindow):
         self._graphics_view.set_brush_size(value)
 
     @pyqtSlot(int)
+    def on_image_selection_slider_change(self, value: int):
+        # if step == 0:
+        #     return
+        self.save_current_label()
+        self.is_value.setText(f"Image: {value}")
+        # max_id = len(self._image_stems) - 1
+        # corner_case_id = 0 if step < 0 else max_id
+        # new_id = self._curr_id + step
+        # new_id = new_id if new_id in range(max_id + 1) else corner_case_id
+        # self._load_sample_by_id(new_id)
+
+        self._load_sample_by_id(value)
+        # self._graphics_view.set_image_selection(value)
+
+    @pyqtSlot(int)
     def on_brush_size_change(self, value: int):
         # updates slider and value label on brush size change via mouse wheel
         self.bs_value.setText(f"Size: {value} px")
@@ -235,6 +271,10 @@ class MainWindow(QMainWindow):
         corner_case_id = 0 if step < 0 else max_id
         new_id = self._curr_id + step
         new_id = new_id if new_id in range(max_id + 1) else corner_case_id
+
+        self.is_value.setText(f"Image: {new_id}")
+        self.is_slider.setSliderPosition(new_id)
+
         self._load_sample_by_id(new_id)
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
@@ -257,9 +297,30 @@ class MainWindow(QMainWindow):
             self._switch_sample_by(-1)
         elif a0.key() == Qt.Key.Key_Period:
             self._switch_sample_by(1)
+        elif a0.key() == Qt.Key.Key_R:
+            self._copy_previous_mask()
 
         return super().keyPressEvent(a0)
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         self.save_current_label()
         return super().closeEvent(a0)
+
+    def _copy_previous_mask(self):
+        if self._curr_id == 0:
+            self.statusBar().showMessage("No previous mask to copy", 5000)
+            return
+        previous_stem = self._image_stems[self._curr_id - 1]
+        previous_mask_path = self._label_dir / f"{previous_stem}_label.png"
+        if not previous_mask_path.exists():
+            self.statusBar().showMessage("No previous mask to copy", 5000)
+            return
+        
+        current_stem = self._image_stems[self._curr_id]
+        current_mask_path = self._label_dir / f"{current_stem}_label.png"
+
+        copy_previous_mask(str(current_mask_path), str(previous_mask_path))
+        self._load_sample_by_id(self._curr_id)
+
+        # self.save_current_label()
+
