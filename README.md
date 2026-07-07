@@ -1,61 +1,41 @@
 
 # EcoSeg
 
-EcoSeg is a semantic segmentation tool built off of SAMAT, tailored to quickly and efficiently segment environmental images.
+EcoSeg is a semantic segmentation tool built off of SAMAT, tailored to quickly and efficiently segment environmental images. The project focuses on stream and river scene annotation, with support for large dataset handling and sampling.
 
 EcoSeg samples images from a dataset through specific sites (and its deployments), balancing the dataset among the six stream connectivity labels through augmentations.
-
-
-## Workflow
-
-- (optional) Generate SAM masks from images via given script
-- Organize your data following [this](#dataset-folder-structure) structure
-- Specify path to your data in `config.toml`
-- Run GUI via `__main__.py` ([prerequisites](#prerequisites) should be satisfied)
-- Annotate using brush (label is saved on sample switch)
 
 ## Getting started
 
 ### Prerequisites
 
-Annotation tool itself requires only:
+Core GUI requirements:
 
 - `Python 3.11`
 - `PyQt5`
 - `numpy`
 
+Requirements for segmentation pipeline:
+
+- `keras`
+- `tensorflow`
+- `segment_anything`
+- `GroundingDino`
+
 Example setup (Ubuntu):
 
 ```bash
-git clone https://github.com/Divelix/samat.git
-cd samat
-sudo apt update
-sudo apt install python3.11-venv
-pip3 install virtualenv
-virtualenv venv -p python3.11
+git clone https://github.com/mbugti04/eco-seg.git
+cd eco-seg
+python3.11 -m venv venv
 source venv/bin/activate
 python -m pip install -e .
 python .
 ```
 
-(optional) In order to generate SAM masks for Magic Wand, you will need to install:
-
-- `PyTorch` to run SAM model inference
-- `segment-anything` itself + related libs
-
-Example setup (assuming Miniconda/Anaconda installed):
-
-```bash
-conda create -n samat python=3.11
-conda activate samat
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
-pip install git+https://github.com/facebookresearch/segment-anything.git
-pip install opencv-python pycocotools matplotlib onnxruntime onnx
-```
-
 ### Dataset folder structure
 
-Your data **MUST** follow this structure:
+For automatic sampling, define the folder to sample from in `dino_pipelined.py`. The script will automatically create a ready-to-use dataset following this structure:
 
 ```
 ── my_dataset
@@ -74,9 +54,9 @@ Your data **MUST** follow this structure:
    └── classes.json
 ```
 
-- `images` contains `.png` files you want to label
-- `labels` contains `.png` files with labels (will be automatically created if you have no labels yet)
-- `sam` contains `.png` files with SAM annotations (8-bit grayscale product of SAM script from `scripts/` folder)
+- `images` contains `.png` (or other image file format) files you want to label
+- `labels` contains `.png` (or other image file format) files with labels (will be automatically created if you have no labels yet)
+- `sam` contains `.png` files with SAM annotations (Binary output of `dino_pipelined.py`)
 - `classes.json` contains classes description that will be used for labeling
 
 Example `classes.json`:
@@ -84,8 +64,9 @@ Example `classes.json`:
 ```json
 {
     "classes": [
-        { "id": 1, "name": "human", "color": "#FF0000" },
-        { "id": 2, "name": "car", "color": "#00FF00" },
+        { "id": 1, "name": "water", "color": "#FF0000" },
+        { "id": 2, "name": "foliage", "color": "#00FF00" },
+        { "id": 3, "name": "rocks", "color": "#0000FF" }
     ]
 }
 ```
@@ -98,7 +79,17 @@ where:
 
 **Note:** specify path to your `my_dataset` (or any other name) inside `config.toml`.
 
-**Note:** image files can have arbitrary names, but should resemble labels and sam names + only `.png` format is suppotred.
+Example:
+
+```toml
+device = "cuda" # or "cpu"
+
+[paths]
+data = "example_dataset"
+sam_weights = "/path/to/sam_weights.pth"
+```
+
+**Note:** Any file format is supported. Labels are saved as `<image_stem>_label.png`
 
 ## Shortcuts
 
