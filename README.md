@@ -13,8 +13,8 @@ Animation below shows annotation speed in real-time (SAM mask used).
 
 - (optional) Generate SAM masks from images via given script
 - Organize your data following [this](#dataset-folder-structure) structure
-- Specify path to your data in `config.toml`
-- Run GUI via `__main__.py` ([prerequisites](#prerequisites) should be satisfied)
+- Run GUI with either `samat --data /path/to/my_dataset` or `python __main__.py --data /path/to/my_dataset`
+- Alternatively, keep `config.toml` next to the launcher and use `samat --config config.toml`
 - Annotate using brush (label is saved on sample switch)
 
 ## Getting started
@@ -38,7 +38,7 @@ pip3 install virtualenv
 virtualenv venv -p python3.11
 source venv/bin/activate
 python -m pip install -e .
-python .
+samat --data example_dataset
 ```
 
 (optional) In order to generate SAM masks for Magic Wand, you will need to install:
