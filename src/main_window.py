@@ -25,14 +25,14 @@ class MainWindow(QMainWindow):
 
     def __init__(self, workdir: str):
         super(MainWindow, self).__init__()
-        self.setWindowTitle("sam_annotator")
+        self.setWindowTitle("EcoSeg_annotator")
         self.resize(1000, 1000)
 
         self._workdir = Path(workdir)
         self._class_dir = self._workdir / "classes.json"
         self._image_dir = self._workdir / "images"
         self._label_dir = self._workdir / "labels"
-        self._sam_dir = self._workdir / "sam"
+        self._sam_dir = self._workdir / "model"
         self._label_dir.mkdir(exist_ok=True)
         self._image_stems = [path.stem for path in sorted(self._image_dir.iterdir())]
         with open(self._class_dir, "r") as f:
@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
         self.ls_label_slider.valueChanged.connect(self.on_ls_label_slider_change)
 
         self.ls_sam_value = QLabel()
-        self.ls_sam_value.setText("SAM opacity: 0%")
+        self.ls_sam_value.setText("Model opacity: 0%")
 
         self.ls_sam_slider = QSlider()
         self.ls_sam_slider.setOrientation(Qt.Orientation.Horizontal)
@@ -83,10 +83,10 @@ class MainWindow(QMainWindow):
         ls_vlay.addWidget(self.ls_sam_value)
         ls_vlay.addWidget(self.ls_sam_slider)
 
-        # SAM group
-        sam_group = QGroupBox(self.tr("SAM"))
+        # Model group
+        sam_group = QGroupBox(self.tr("Model"))
 
-        self.sam_checkbox = QCheckBox("SAM assistance")
+        self.sam_checkbox = QCheckBox("Model assistance")
         self.sam_checkbox.stateChanged.connect(self.on_sam_change)
 
         sam_vlay = QVBoxLayout(sam_group)
@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(int)
     def on_ls_sam_slider_change(self, value: int):
-        self.ls_sam_value.setText(f"SAM opacity: {value}%")
+        self.ls_sam_value.setText(f"Model opacity: {value}%")
         self._graphics_view.set_sam_opacity(value)
 
     @pyqtSlot(int)
