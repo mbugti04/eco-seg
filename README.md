@@ -11,7 +11,8 @@ Animation below shows annotation speed in real-time (SAM mask used).
 
 ## Workflow
 
-- (optional) Generate SAM masks from images via given script
+- (optional) Generate SAM masks from images via `python scripts/dino_pipelined.py`
+- The script is configured from a single block at the top of `scripts/dino_pipelined.py`, where you can change the source glob, dataset paths, model preset, and target class without touching the rest of the pipeline
 - Organize your data following [this](#dataset-folder-structure) structure
 - Run GUI with either `samat --data /path/to/my_dataset` or `python __main__.py --data /path/to/my_dataset`
 - Alternatively, keep `config.toml` next to the launcher and use `samat --config config.toml`
