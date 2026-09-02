@@ -3,8 +3,8 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "samat"
-description = "SAM Annotation Tool"
+name = "Eco-Seg"
+description = "Smart Annotation Tool"
 authors = [
     {name = "Dimitrios Seremetis & Mustafa Bugti", email = "dseremeti@conncoll.edu"},
 ]
