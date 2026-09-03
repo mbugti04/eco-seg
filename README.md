@@ -2,8 +2,21 @@
 # EcoSeg
 
 EcoSeg is a semantic segmentation tool built off of SAMAT, tailored to quickly and efficiently segment environmental images. The project focuses on stream and river scene annotation, with support for large dataset handling and sampling.
-
 EcoSeg samples images from a dataset through specific sites (and its deployments), balancing the dataset among the six stream connectivity labels through augmentations.
+
+## Showcase
+
+Animation below shows annotation speed in real-time (SAM mask used).
+![showcase](assets/showcase.gif)
+
+## Workflow
+
+- (optional) Generate SAM masks from images via `python scripts/dino_pipelined.py`
+- The script is configured from a single block at the top of `scripts/dino_pipelined.py`, where you can change the source glob, dataset paths, model preset, and target class without touching the rest of the pipeline
+- Organize your data following [this](#dataset-folder-structure) structure
+- Run GUI with either `samat --data /path/to/my_dataset` or `python __main__.py --data /path/to/my_dataset`
+- Alternatively, keep `config.toml` next to the launcher and use `samat --config config.toml`
+- Annotate using brush (label is saved on sample switch)
 
 ## Getting started
 
@@ -30,7 +43,7 @@ cd eco-seg
 python3.11 -m venv venv
 source venv/bin/activate
 python -m pip install -e .
-python .
+samat --data example_dataset
 ```
 
 ### Dataset folder structure
