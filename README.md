@@ -46,9 +46,11 @@ python -m pip install -e .
 samat --data example_dataset
 ```
 
+For development, install the test dependency with `python -m pip install -e ".[dev]"` and run `python -m pytest`.
+
 ### Dataset folder structure
 
-For automatic sampling, define the folder to sample from in `dino_pipelined.py`. The script will automatically create a ready-to-use dataset following this structure:
+Create a dataset directory with this structure. The legacy `dino_pipelined.py` script can sample and copy source images, while `preprocess_dataset.py` adds optional model masks.
 
 ```
 ── my_dataset
@@ -69,7 +71,7 @@ For automatic sampling, define the folder to sample from in `dino_pipelined.py`.
 
 - `images` contains `.png` (or other image file format) files you want to label
 - `labels` contains `.png` (or other image file format) files with labels (will be automatically created if you have no labels yet)
-- `sam` contains `.png` files with SAM annotations (Binary output of `dino_pipelined.py`)
+- `sam` contains optional precomputed region masks. When Model assistance is enabled, clicking a region fills it with the active class color.
 - `classes.json` contains classes description that will be used for labeling
 
 Example `classes.json`:
@@ -102,7 +104,9 @@ data = "example_dataset"
 sam_weights = "/path/to/sam_weights.pth"
 ```
 
-**Note:** Any file format is supported. Labels are saved as `<image_stem>_label.png`
+**Note:** The GUI accepts common image formats (PNG, JPEG, TIFF, WebP, BMP). Labels are saved as `<image_stem>_label.png`; generated model masks are saved as `sam/<image_stem>.png`.
+
+The GUI never downloads or runs a model while you annotate: 
 
 ## Shortcuts
 

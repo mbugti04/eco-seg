@@ -15,5 +15,8 @@ dependencies = [
 ]
 version= "1.0.0"
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [project.scripts]
 samat = "src.cli:main"
